@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("WebScraper")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("audio scraper by Zac King")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Academy of Interactive Entertainment")]
 [assembly: AssemblyProduct("WebScraper")]

@@ -1,7 +1,6 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Net;
-using System.Linq;
 using System.IO;
 using System.Windows.Forms;
 using System.Collections.Generic;
@@ -12,20 +11,23 @@ namespace WebScraper
 {
     public partial class Form1 : Form
     {
+        public string sbName = "Bane";
+        public string urlTarget = "http://www.realmofdarkness.net/sb/bane/";   // Site that will be scraped
+
         private Dictionary<string, string> audioFiles = new Dictionary<string, string>();   // may be scraped ??
-        string audioPath = Environment.CurrentDirectory + "\\AudioClips";       // Folder path for our Audio Clips
+        private string audioPath;     // Folder path for our Audio Clips
 
         private System.Drawing.Point currentButtonpos = new System.Drawing.Point(0, 0); // Posistional Iterator for generated buttons
         private int xButtonOffset = 80;  // X offset for generated buttons
         private int yButtonOffset = 30;  // Y offset for generated buttons
-
-        string urlTarget = "http://www.realmofdarkness.net/sb/bane/";   // Site that will be scraped
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 
         public Form1()
         {
             InitializeComponent();      // Initialize our form
+            audioPath = Environment.CurrentDirectory + ("\\AudioClips\\" + sbName);
+            this.Text = "Bane Soundboard";
             AddAllClips();      // Grab all audio clips
         }
 
@@ -52,6 +54,13 @@ namespace WebScraper
 
         void AddAllClips()
         {
+            if(!Environment.CurrentDirectory.Contains("\\AudioClips\\" + sbName))  // If a Audioclips folder doesn't exist,
+            {
+                Directory.CreateDirectory(audioPath);                   // we make one
+                Directory.CreateDirectory(audioPath + "\\Wav Files");
+                Directory.CreateDirectory(audioPath + "\\MP3 Files");
+            }
+
             var webRequest = new HtmlWeb();
             var webPage = webRequest.Load(urlTarget);                   // Open that url
             var nodes = webPage.DocumentNode.SelectNodes("//audio");    // All line with the div audio
@@ -63,7 +72,7 @@ namespace WebScraper
                 string desiredURL = ""; // Container for our url, starting blank
                 bool grab = false;      // 
 
-                #region Parse through the rawInnerhtml to find our url
+            #region Parse through the rawInnerhtml to find our url
                 foreach (char c in rawInnerhtml)
                 {
                     if (grab && c != '"')   // storing the url from the innerhtml, second condition is so we don't grab the (") at the end
@@ -72,20 +81,18 @@ namespace WebScraper
                     if (c == '"')           // if it's a (") what will follow will be our url
                         grab = !grab;
                 }
-                #endregion
-
+            #endregion
                 
-                if (Directory.GetFiles(audioPath).Length < 140)    // Rigid check to see if we already downloaded the files
+                if (Directory.GetFiles(audioPath + "\\Wav Files").Length < nodes.Count)
                 {
                     using (var client = new WebClient())    // 
                     {
                         //desired url is the url of the mp3
                         //audioPath is where we want to save it
-                        string ap = audioPath + "\\" + n.Id + ".mp3";
+                        string ap = audioPath + "\\MP3 Files\\" + n.Id + ".mp3";
                         client.DownloadFile(desiredURL, ap);  // stores audio clip
 
-
-                        Mp3ToWav(ap, audioPath + "\\" + n.Id + ".wav");
+                        Mp3ToWav(ap, audioPath + "\\Wav Files\\" + n.Id + ".wav");
                     }
                 }
 
@@ -94,11 +101,11 @@ namespace WebScraper
         #endregion
 
         #region Add all the audio files we found to the dictionary
-            foreach (string clipPath in Directory.GetFiles(audioPath))
+            foreach (string clipPath in Directory.GetFiles(audioPath + "\\Wav Files"))
             {
                 string clip = Path.GetFileName(clipPath);   // grab this file's entire File Path
                 if(clip.EndsWith(".wav"))
-                    audioFiles.Add(clip, audioPath + "\\" + clip.ToString());     // adds file to dictionary
+                    audioFiles.Add(clip, audioPath + "\\Wav Files\\" + clip.ToString());     // adds file to dictionary
             }
         #endregion
         }
